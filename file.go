@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"fmt"
+	"image"
 	"io"
 	"io/fs"
 	"os"
@@ -35,9 +36,9 @@ func calcHash(file *os.File) string {
 
 }
 
-func findDuplicates(list []string) ([]string, error) {
-
-	var copies []string
+func findDuplicates(list []string) ([][]string, error) {
+	duplicates := make(map[string][]string)
+	var result [][]string
 
 	for i := range list {
 
@@ -48,14 +49,19 @@ func findDuplicates(list []string) ([]string, error) {
 		defer file.Close()
 
 		if !isDir(file) {
-			copies = append(copies, calcHash(file))
+			hash := calcHash(file)
+			duplicates[hash] = append(duplicates[hash], list[i])
 		}
 
 	}
 
-	//TODO: Return Duplicates instead of Hashes of the Files
+	for _, files := range duplicates {
+		if len(files) > 1 {
+			result = append(result, files)
+		}
+	}
 
-	return copies, nil
+	return result, nil
 }
 
 func isDir(file *os.File) bool {
@@ -66,4 +72,16 @@ func isDir(file *os.File) bool {
 	}
 
 	return fileInfo.IsDir()
+}
+
+// TODO: Find image duplicates
+func compareImages(img1, img2 image.Image) bool {
+
+	if img1.Bounds() != img2.Bounds() {
+		return false
+
+	}
+
+	return false
+
 }

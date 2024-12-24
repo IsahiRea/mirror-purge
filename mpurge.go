@@ -1,29 +1,41 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 )
 
 func main() {
-
 	var dir string
+	var useHash bool
+	var outputFile string
+	var deleteDuplicates bool
 
-	//TODO: Figure out Command Line Arguments
+	// Define command line arguments
+	flag.BoolVar(&useHash, "hash", false, "Use hash comparisons")
+	flag.BoolVar(&useHash, "h", false, "Use hash comparisons (shorthand)")
+	flag.StringVar(&outputFile, "output", "", "Specify an output file for the results")
+	flag.StringVar(&outputFile, "o", "", "Specify an output file for the results (shorthand)")
+	flag.BoolVar(&deleteDuplicates, "delete", false, "Prompt to delete duplicates")
+	flag.BoolVar(&deleteDuplicates, "d", false, "Prompt to delete duplicates (shorthand)")
 
-	// ifHash := os.Args[0]
-	// ifOutput := os.Args[1]
-	// ifDelete := os.Args[2]
+	// Parse command line arguments
+	flag.Parse()
 
-	argsOptions := os.Args[1:]
-
-	if len(argsOptions) < 2 {
+	// Get the directory from the remaining arguments
+	args := flag.Args()
+	if len(args) < 1 {
 		dir = "."
 	} else {
-		dir = os.Args[2]
+		dir = args[0]
 	}
 
+	//TODO: Implement different logic for hash comparisons
+	// Default for now is to use hash comparisons
+
+	// Scan the directory
 	dirScan := scanDir(dir)
 	fmt.Println(dirScan)
 
@@ -32,4 +44,19 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(copies)
+
+	// Handle output file if specified
+	if outputFile != "" {
+		err := os.WriteFile(outputFile, []byte(fmt.Sprintf("%v", copies)), 0644)
+		if err != nil {
+			fmt.Println("Error writing to output file:", err)
+		}
+	}
+
+	// Handle delete duplicates if specified
+	if deleteDuplicates {
+		//TODO: Implement delete logic here
+		fmt.Println("Delete duplicates option selected")
+	}
+
 }

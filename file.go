@@ -11,6 +11,8 @@ import (
 	"io/fs"
 	"os"
 	"strings"
+
+	"golang.org/x/image/draw"
 )
 
 func isDir(file *os.File) bool {
@@ -61,15 +63,43 @@ func calcHash(file *os.File) string {
 }
 
 func calcImageHash(img image.Image) string {
-	// TODO: Implement a hash function for images
+	// Resize image to 8x8
+	const size = 8
+	resized := resizeImage(img, size, size)
 
-	// Using bounds of the image as a hash for now
-	return fmt.Sprintf("%d%d", img.Bounds().Dx(), img.Bounds().Dy())
+	// Convert image to grayscale
+	gary := image.NewGray(resized.Bounds())
+	draw.Draw(gary, gary.Bounds(), resized, image.Point{}, draw.Src)
+
+	// Create a new hash
+	hash := md5.New()
+	for y := 0; y < size; y++ {
+		for x := 0; x < size; x++ {
+			// Get the color of the pixel
+			color := gary.GrayAt(x, y)
+			// Add the color to the hash
+			hash.Write([]byte{color.Y})
+		}
+	}
+
+	return fmt.Sprintf("%x", hash.Sum(nil))
+}
+
+func resizeImage(img image.Image, width, height int) image.Image {
+	dst := image.NewRGBA(image.Rect(0, 0, width, height))
+	draw.CatmullRom.Scale(dst, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
+	return dst
+}
+
+// TODO: Add video hashing
+func calcVideoHash(file *os.File) string {
+	return ""
 }
 
 func findDuplicates(list []string) ([][]string, error) {
 	duplicates := make(map[string][]string)
 	imageDuplicates := make(map[string][]string)
+	videoDuplicates := make(map[string][]string)
 	var result [][]string
 
 	// Iterate over the list of files
@@ -99,7 +129,6 @@ func findDuplicates(list []string) ([][]string, error) {
 		// Check if file is an image
 		if extension == "jpg" || extension == "jpeg" || extension == "png" {
 
-			fmt.Println("Calculating image hash for", list[i])
 			img, _, err := image.Decode(file)
 			if err != nil {
 				fmt.Println("Error decoding image:", err)
@@ -108,6 +137,11 @@ func findDuplicates(list []string) ([][]string, error) {
 
 			hash := calcImageHash(img)
 			imageDuplicates[hash] = append(imageDuplicates[hash], list[i])
+		}
+
+		if extension == "mp4" || extension == "avi" || extension == "mkv" {
+			hash := calcVideoHash(file)
+			videoDuplicates[hash] = append(videoDuplicates[hash], list[i])
 		}
 
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/md5"
 	"fmt"
 	"image"
@@ -10,6 +11,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"strings"
 
 	"golang.org/x/image/draw"
@@ -91,9 +93,21 @@ func resizeImage(img image.Image, width, height int) image.Image {
 	return dst
 }
 
-// TODO: Add video hashing
 func calcVideoHash(file *os.File) string {
-	return ""
+	cmd := exec.Command("ffmpeg", "-i", file.Name(), "-vf", "fps=1", "-q:v", "2", "frame%04d.jpg")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println("Error Extracting Frames:", err)
+		return ""
+	}
+
+	hash := md5.New()
+
+	//TODO: Implement video hashing
+
+	return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
 func findDuplicates(list []string) ([][]string, error) {

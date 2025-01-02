@@ -3,10 +3,11 @@ package main
 import (
 	"bytes"
 	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
 	"image"
 	_ "image/gif"
-	_ "image/jpeg"
+	"image/jpeg"
 	_ "image/png"
 	"io"
 	"io/fs"
@@ -14,6 +15,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/nfnt/resize"
 	"golang.org/x/image/draw"
 )
 
@@ -94,18 +96,44 @@ func resizeImage(img image.Image, width, height int) image.Image {
 }
 
 func calcVideoHash(file *os.File) string {
-	cmd := exec.Command("ffmpeg", "-i", file.Name(), "-vf", "fps=1", "-q:v", "2", "frame%04d.jpg")
+	cmd := exec.Command("ffmpeg", "-i", file.Name(), "-vf", "fps=1", "-q:v", "2", "-f", "mjpeg", "pipe:1")
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
 		fmt.Println("Error Extracting Frames:", err)
 		return ""
 	}
 
-	hash := md5.New()
+	hash := sha256.New()
 
 	//TODO: Implement video hashing
+	reader := bytes.NewReader(out.Bytes())
+	for {
+		img, err := jpeg.Decode(reader)
+		if err != nil {
+			if strings.Contains(err.Error(), "EOF") {
+				break
+			}
+
+			fmt.Println("Error decoding image:", err)
+			continue
+		}
+
+		const size = 8
+		resized := resize.Resize(size, size, img, resize.Lanczos3)
+
+		gray := image.NewGray(resized.Bounds())
+		draw.Draw(gray, gray.Bounds(), resized, image.Point{}, draw.Src)
+
+		for y := 0; y < size; y++ {
+			for x := 0; x < size; x++ {
+				color := gray.GrayAt(x, y)
+				hash.Write([]byte{color.Y})
+			}
+		}
+	}
 
 	return fmt.Sprintf("%x", hash.Sum(nil))
 }

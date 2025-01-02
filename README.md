@@ -25,6 +25,10 @@ The Mirror Purge is a utility tool designed to identify duplicate files on your 
    ```bash
    go build
    ```
+4. Install `ffmpeg` (required for video hashing):
+   ```bash
+   sudo apt install ffmpeg
+   ```
 
 ## Usage
 1. Run the tool:

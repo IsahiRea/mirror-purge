@@ -10,9 +10,6 @@ import (
 	"os"
 )
 
-//TODO: Implement different logic for hash comparisons
-// Default for now is to use hash comparisons
-
 func scanDir(dir string) (list []string) {
 
 	// Open the directory
@@ -42,16 +39,27 @@ func calcHash(filePath string) (string, error) {
 	}
 	defer file.Close()
 
+	//TODO: Implement different logic for hash comparisons
+	// Default for now is to use hash comparisons
+
+	// var hasher hash.Hash
+	// switch hashAlgorithm {
+	// case "sha256":
+	// 	hasher = sha256.New()
+	// default:
+	// 	hasher = md5.New()
+	// }
+
 	// Create a new hash
-	hash := md5.New()
+	hasher := md5.New()
 
 	// Copy the file contents to the hash
-	if _, err := io.Copy(hash, file); err != nil {
+	if _, err := io.Copy(hasher, file); err != nil {
 		return "", err
 	}
 
 	// Return the hash as a string
-	return fmt.Sprintf("%x", hash.Sum(nil)), nil
+	return fmt.Sprintf("%x", hasher.Sum(nil)), nil
 
 }
 

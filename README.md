@@ -32,13 +32,13 @@ The Mirror Purge is a utility tool designed to identify duplicate files on your 
    ./mirror-purge [options] <directory>
    ```
 2. Options:
-   - `--hash` or `-h`: Use hash comparisons.
+   - `--hash <hash-type>` or `-h <hash-type>`: Use hash comparisons (md5, sha256).
    - `--output <file>` or `-o <file>`: Specify an output file for the results.
    - `--delete` or `-d`: Prompt to delete duplicates.
 
 Example:
 ```bash
-./mirror-purge -h -o results.txt ~/Documents
+./mirror-purge -h sha256 -o results.txt ~/Documents
 ```
 
 ## Roadmap

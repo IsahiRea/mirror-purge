@@ -2,56 +2,51 @@ package main
 
 import (
 	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
+	"hash"
 	_ "image/gif"
 	_ "image/png"
 	"io"
-	"io/fs"
+	"log"
 	"os"
+	"path/filepath"
 )
 
-func scanDir(dir string) (list []string) {
+func scanDir(dir string) []string {
 
-	// Open the directory
-	fileSys := os.DirFS(dir)
-	dirSys, err := fs.ReadDir(fileSys, dir)
-	if err != nil {
-		return nil
-	}
-
-	for _, entry := range dirSys {
-		path := dir + "/" + entry.Name()
-		if entry.IsDir() {
-			list = append(list, scanDir(path)...)
-		} else {
-			list = append(list, path)
+	var files []string
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			files = append(files, path)
 		}
+		return nil
+	})
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	return list
+	return files
 }
 
 func calcHash(filePath string) (string, error) {
 
+	// Open the file
 	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err
 	}
 	defer file.Close()
 
-	//TODO: Implement different logic for hash comparisons
-	// Default for now is to use hash comparisons
-
-	// var hasher hash.Hash
-	// switch hashAlgorithm {
-	// case "sha256":
-	// 	hasher = sha256.New()
-	// default:
-	// 	hasher = md5.New()
-	// }
-
 	// Create a new hash
-	hasher := md5.New()
+	var hasher hash.Hash
+	switch useHash {
+	case "sha256":
+		hasher = sha256.New()
+	default:
+		hasher = md5.New()
+	}
 
 	// Copy the file contents to the hash
 	if _, err := io.Copy(hasher, file); err != nil {
@@ -65,7 +60,10 @@ func calcHash(filePath string) (string, error) {
 
 func findDuplicates(files []string) (map[string][]string, error) {
 
+	// Create a map to store the hashes
 	hashes := make(map[string][]string)
+
+	// Calculate the hash for each file
 	for _, file := range files {
 		hash, err := calcHash(file)
 		if err != nil {
@@ -74,7 +72,10 @@ func findDuplicates(files []string) (map[string][]string, error) {
 		hashes[hash] = append(hashes[hash], file)
 	}
 
+	// Create a map to store the duplicates
 	duplicates := make(map[string][]string)
+
+	// Find files with the same hash
 	for hash, files := range hashes {
 		if len(files) > 1 {
 			duplicates[hash] = files

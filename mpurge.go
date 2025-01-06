@@ -32,9 +32,6 @@ func main() {
 		dir = args[0]
 	}
 
-	//TODO: Implement different logic for hash comparisons
-	// Default for now is to use hash comparisons
-
 	// Scan the directory
 	dirScan := scanDir(dir)
 	fmt.Println(dirScan)
@@ -55,7 +52,6 @@ func main() {
 
 	// Handle delete duplicates if specified
 	if deleteDuplicates {
-		//TODO: Implement delete logic here
 		fmt.Println("Delete duplicates option selected")
 
 		for _, duplicates := range copies {

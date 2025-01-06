@@ -57,6 +57,17 @@ func main() {
 	if deleteDuplicates {
 		//TODO: Implement delete logic here
 		fmt.Println("Delete duplicates option selected")
+
+		for _, duplicates := range copies {
+			for _, file := range duplicates[1:] {
+				err := os.Remove(file)
+				if err != nil {
+					fmt.Printf("Error deleting file %s: %v\n", file, err)
+				} else {
+					fmt.Printf("Deleted duplicate file %s\n", file)
+				}
+			}
+		}
 	}
 
 }

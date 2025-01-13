@@ -35,6 +35,8 @@ The Mirror Purge is a utility tool designed to identify duplicate files on your 
    - `--hash <hash-type>` or `-h <hash-type>`: Use hash comparisons (md5, sha256).
    - `--output <file>` or `-o <file>`: Specify an output file for the results.
    - `--delete` or `-d`: Prompt to delete duplicates.
+   - `--traverse` or `-t`: Traverse subdirectories.
+
 
 Example:
 ```bash
@@ -43,5 +45,4 @@ Example:
 
 ## Roadmap
 - Add GUI for non-technical users.
-- Support for additional file types.
 - Advanced filtering options (e.g., by file type or date).

@@ -12,10 +12,10 @@ var (
 	useHash          string
 	outputFile       string
 	deleteDuplicates bool
+	traverseSubDirs  bool
 )
 
 // TODO: Find duplicates using similarities in file size and hash
-// TODO: Implement command line argument for traversing subdirectories
 func main() {
 
 	// Define command line arguments
@@ -25,6 +25,8 @@ func main() {
 	flag.StringVar(&outputFile, "o", "", "Specify an output file for the results (shorthand)")
 	flag.BoolVar(&deleteDuplicates, "delete", false, "Prompt to delete duplicates")
 	flag.BoolVar(&deleteDuplicates, "d", false, "Prompt to delete duplicates (shorthand)")
+	flag.BoolVar(&traverseSubDirs, "subdirs", false, "Traverse subdirectories")
+	flag.BoolVar(&traverseSubDirs, "t", false, "Traverse subdirectories")
 
 	// Parse command line arguments
 	flag.Parse()
@@ -38,7 +40,7 @@ func main() {
 	}
 
 	// Scan the directory
-	dirScan := scanDir(dir)
+	dirScan := scanDir(dir, traverseSubDirs)
 
 	// Find duplicates
 	copies, err := findDuplicates(dirScan)

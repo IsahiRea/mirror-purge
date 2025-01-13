@@ -13,9 +13,36 @@ import (
 	"path/filepath"
 )
 
-func scanDir(dir string) []string {
+func scanDir(dir string, traverse bool) []string {
 
+	// Create a slice to store the files
 	var files []string
+
+	// If traverse is false, scan only the directory
+	if !traverse {
+		allEntries, err := filepath.Glob(filepath.Join(dir, "*"))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, entry := range allEntries {
+			info, err := os.Stat(entry)
+			if err != nil {
+				log.Println("Error getting file info:", err)
+				continue
+			}
+
+			if !info.IsDir() {
+				files = append(files, entry)
+			}
+		}
+
+		return files
+	}
+
+	// If traverse is true, scan the directory and subdirectories
+
+	// Walk the directory
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			files = append(files, path)
